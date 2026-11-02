@@ -1,0 +1,124 @@
+{
+  "guideVersion": "0.1",
+  "defaultMode": "subtitle-cards",
+  "firstResponse": "把字幕发我就行——SRT 原文最好（剪映、Pr、剪贴板复制的逐句文字都行）。我不改你的文字，只负责让每一句放得下、读得到。",
+  "fit": {
+    "genres": [
+      "tutorial",
+      "showcase"
+    ],
+    "summary": "已有字幕的口播/讲解片，需要把文字做成视觉主体的时候用。",
+    "goodFor": [
+      "手上已经有一份 SRT（ASR 转写、剪映字幕、人工手打）",
+      "口播、访谈、科普、读书摘录这类「一句一句讲」的内容",
+      "不想把字幕重新拆成标题和要点，只想让它上屏好看"
+    ],
+    "notFor": [
+      "需要图表、数据大字卡、章节结构的片子（用 finance-cards 那类信息卡模板）",
+      "没有人声、纯音乐或纯画面的片子",
+      "不想让人读字、靠画面讲故事的片子"
+    ]
+  },
+  "duration": {
+    "policy": "fixed",
+    "min": 33.95,
+    "max": 33.95,
+    "default": 33.95,
+    "param": "srt",
+    "rules": [
+      "motion.json 的 durationSeconds 只描述 presets/demo.json 这一条样例，不是强制时长",
+      "真实时长 = 最后一句字幕结束时间 + tailSeconds（默认 0.8 秒），以页面暴露的 window.DURATION 为准，不要按 durationSeconds 去裁剪帧数",
+      "不提供手动时长参数：时长必须跟字幕对齐，否则音画会错位",
+      "单条字幕超 36 字会按标点切成两屏，不压缩镜头时长"
+    ]
+  },
+  "materials": [
+    {
+      "role": "text.subtitles",
+      "required": true,
+      "ask": "把字幕发我。SRT 原文最省事（整段粘贴即可），或者逐句文字 + 每句大概几秒。",
+      "maps": [
+        "srt",
+        "subtitles"
+      ],
+      "use": "字幕就是画面主体：逐句居中上屏、逐字高亮已读、关键词换色。模板自己解析 SRT 时间轴，不改写一个字。",
+      "ifMissing": "没有现成 SRT 时：按用户给的文字逐句平均分配 3 秒，并在交付时明确说明「时间是估算的，建议用真实 SRT 重出一版」。"
+    },
+    {
+      "role": "audio.voiceover",
+      "required": false,
+      "ask": "这段字幕有对应的录音吗？",
+      "maps": [],
+      "use": "本模板不含音轨，只出画面。配音属于下游工序：把成片和原音轨在剪辑软件里合成就行。",
+      "ifMissing": "默认出无声片。不要为了配音量去改字幕时间轴。"
+    }
+  ],
+  "copy": [
+    {
+      "param": "srt",
+      "label": "字幕原文",
+      "from": [
+        "conversation"
+      ],
+      "rule": "SRT 原样粘贴，不要改写字幕内容、不要合并句子、不要调整时间码。单条超过 36 字时模板会自动切成两屏，不需要你手动拆。"
+    },
+    {
+      "param": "brand",
+      "label": "栏目名",
+      "from": [
+        "conversation"
+      ],
+      "rule": "≤8 字，显示在左上角。用户没说就留默认，不要追问。"
+    },
+    {
+      "param": "issue",
+      "label": "期号",
+      "from": [
+        "conversation"
+      ],
+      "rule": "≤12 字，右上角，可留空。不要自动编期号。"
+    },
+    {
+      "param": "title",
+      "label": "顶部小标题",
+      "from": [
+        "conversation"
+      ],
+      "rule": "≤24 字，可选。它不占时间轴、不影响音画同步，只是顶部一行小字。不要为它改字幕时序。"
+    },
+    {
+      "param": "keywords",
+      "label": "强调词",
+      "from": [
+        "conversation"
+      ],
+      "rule": "≤12 个、每个 ≤12 字。从字幕里挑真正关键的词（数字、结论、病名、专有名词），子串匹配命中后换色。不要塞满，超过 8 个会显得花。"
+    }
+  ],
+  "conversation": {
+    "firstQuestion": "把字幕发我：SRT 原文最省事，整段粘贴就行。",
+    "mustAsk": [
+      "字幕里时间码不连续、或总时长明显不对时，问一句是不是导出时截断了",
+      "用户要求「改字幕文字」时确认：模板不改原文，要改请在源文件里改"
+    ],
+    "neverAsk": [
+      "不要问用哪个字体、字号、分辨率",
+      "不要问画幅（本模板固定 1080×1920 竖屏）",
+      "不要要求用户把字幕转成 JSON",
+      "不要一次问齐品牌、期号、标题——没提就用默认"
+    ]
+  },
+  "hostWithoutTools": {
+    "situation": "助手只能聊天，不能读文件、不能执行命令",
+    "deliver": "把 {brand, issue, title, keywords, srt} 整理成一份参数 JSON 交给用户，说明在有文件权限与命令行的环境（Codex / Claude Code / Cursor 本地模式）里执行；同时告诉用户时长将是「最后一句 + 0.8 秒」。",
+    "doNot": "不要声称已经渲染完成；不要描述未经验证的成片效果"
+  },
+  "languageNote": "仅支持中文（zh）。字幕容量按中文字符计算；英文或中日混排会明显偏窄，请另做英文模板。",
+  "complianceNote": "字幕内容由用户提供，模板不改写。若字幕含医疗诊断、投资收益承诺、绝对化疗效表述，提示作者自行核对，不代为修改。",
+  "productionStatus": "candidate",
+  "motiongit": {
+    "apiEnabled": false,
+    "credentialsIncluded": false,
+    "repository": "https://github.com/sangzhexianxian/motion-zh"
+  }
+}
