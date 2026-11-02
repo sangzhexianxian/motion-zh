@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sangzhexianxian/motion-zh/templates/subtitle-cards/params.schema.json",
+  "title": "字幕卡片 · 逐句上屏 参数契约",
+  "description": "把一份字幕（SRT 原文或结构化数组）变成竖屏片。所有文字槽位标注了中文字符上限；字幕超长会自动切成多屏，不改写你的原文。",
+  "type": "object",
+  "additionalProperties": false,
+  "anyOf": [
+    { "required": ["srt"] },
+    { "required": ["subtitles"] }
+  ],
+  "properties": {
+    "brand": {
+      "type": "string",
+      "default": "字幕卡片",
+      "maxLength": 10,
+      "x-zh": { "maxChars": 8, "role": "栏目名", "note": "左上角常驻，建议 ≤6 字" }
+    },
+    "issue": {
+      "type": "string",
+      "default": "",
+      "maxLength": 16,
+      "x-zh": { "maxChars": 12, "role": "期号", "note": "右上角，可留空" }
+    },
+    "title": {
+      "type": "string",
+      "default": "",
+      "maxLength": 24,
+      "x-zh": {
+        "maxChars": 24, "maxLines": 2, "lineChars": 12, "role": "片头标题（可选）",
+        "note": "留空则直接进字幕。填入会在片头停 2 秒"
+      }
+    },
+    "srt": {
+      "type": "string",
+      "description": "SRT 字幕原文。直接粘贴整段 SRT 即可，模板自己解析时间轴。优先级高于 subtitles。",
+      "x-zh": {
+        "role": "字幕原文（推荐）",
+        "note": "SRT 格式：序号 / 00:00:01,000 --> 00:00:03,000 / 文本。中文逗号句号都能识别；单条超过 36 字会自动切成两屏"
+      }
+    },
+    "subtitles": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 600,
+      "description": "结构化字幕。有 SRT 原文时不需要填这个。",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["start", "end", "text"],
+        "properties": {
+          "start": { "type": "number", "minimum": 0, "x-zh": { "role": "开始秒", "note": "支持 1.5 这样的小数" } },
+          "end": { "type": "number", "minimum": 0, "x-zh": { "role": "结束秒", "note": "必须大于 start" } },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "x-zh": { "maxChars": 60, "role": "整句字幕", "note": "单条建议 ≤36 字，超出自动切屏" }
+          }
+        }
+      }
+    },
+    "keywords": {
+      "type": "array",
+      "maxItems": 12,
+      "description": "需要在字幕里强调的词（数字、结论词、专有名词）。命中后换色。",
+      "items": {
+        "type": "string",
+        "maxLength": 12,
+        "x-zh": { "maxChars": 12, "role": "高亮词", "note": "子串匹配，建议 2–6 字" }
+      }
+    },
+    "accent": {
+      "type": "string",
+      "default": "#F2C24E",
+      "pattern": "^#[0-9A-Fa-f]{6}$",
+      "x-zh": { "role": "强调色", "note": "已读文字与进度条颜色" }
+    },
+    "accent2": {
+      "type": "string",
+      "default": "#4CC2FF",
+      "pattern": "^#[0-9A-Fa-f]{6}$",
+      "x-zh": { "role": "次强调色", "note": "关键词命中色" }
+    },
+    "tailSeconds": {
+      "type": "number",
+      "default": 0.8,
+      "minimum": 0,
+      "maximum": 5,
+      "x-zh": { "role": "片尾留白", "note": "最后一句结束后多留几秒，默认 0.8" }
+    }
+  }
+}
