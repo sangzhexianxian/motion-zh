@@ -1,0 +1,20 @@
+{
+  "profile": "motiongit.dependency-lock/1",
+  "runtime": { "profile": "html-canvas/1", "node": ">=18" },
+  "packages": {},
+  "system": {
+    "browser": "Chromium headless shell（由随包工具探测，模板不内置浏览器）",
+    "ffmpeg": "encoder only"
+  },
+  "fonts": [
+    {
+      "family": "Noto Sans CJK SC",
+      "source": "system",
+      "fallback": ["PingFang SC", "Source Han Sans SC", "Microsoft YaHei"],
+      "note": "模板不含字体文件；渲染机器需有中文字体，否则中文会变方块。"
+    }
+  ],
+  "tested": [
+    { "os": "linux", "node": "24.9.0", "chromium": "1243", "result": "rendered" }
+  ]
+}
