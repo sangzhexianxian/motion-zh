@@ -12,7 +12,8 @@
 |---|---|---|
 | ① | `scripts/check_zh.py` — 中文容量与断行禁则检查器 | 零依赖，纯 Python 标准库 |
 | ② | `templates/finance-cards/` — 完整中文 `.motion` 模板源码 | **已上架 MotionGit**，[免费下载](https://motiongit.com/@guo-factory/finance-cards-zh) |
-| ③ | `tools/render_probe.js` — 按时间点抽帧，肉眼验收真的没溢出 | 需要 Playwright |
+| ③ | `templates/subtitle-cards/` — **吃 SRT 的字幕卡模板**：逐句上屏 + 逐字高亮 | 已通过官方 inspect，可上传 |
+| ④ | `tools/render_probe.js` — 按时间点抽帧，肉眼验收真的没溢出 | 需要 Playwright |
 
 ---
 
@@ -99,9 +100,13 @@ motion-zh/
 │   ├── check_zh.py              # 检查器（纯标准库，无依赖）
 │   └── rules.json               # 规则表，可改
 ├── templates/
-│   └── finance-cards/           # 完整中文模板源码，已通过官方 inspect
-│       ├── motion.json
-│       ├── params.schema.json   # 中文字符容量写在这里
+│   ├── finance-cards/           # 信息卡模板，已通过官方 inspect
+│   │   ├── motion.json
+│   │   ├── params.schema.json   # 中文字符容量写在这里
+│   │   ├── guide.json
+│   │   └── src/index.html
+│   └── subtitle-cards/          # 字幕卡模板：直接吃 SRT
+│       ├── params.schema.json   # srt / subtitles 二选一
 │       ├── guide.json
 │       └── src/index.html
 └── tools/
@@ -118,6 +123,26 @@ motion-zh/
 - 字幕安全区按短视频平台底部 24% UI 保留区让位
 
 想改成自己的风格，直接抄这个模板的 `params.schema.json` 和折行函数。
+
+## 第二个模板：字幕卡片 · 逐句上屏
+
+![字幕卡片实际渲染](templates/subtitle-cards/demo.gif)
+
+平台上几乎所有模板都要你「填结构化文案」。但真实工作流是：**录完口播 → ASR 转写 → 手上先有一份 SRT。**
+
+这个模板跳过「把字幕拆成标题和要点」那一步——**把 SRT 丢进去，字幕本身就是画面**。
+
+- 逐句居中上屏，**逐字高亮**（读到的字变金）
+- `keywords` 命中的词变蓝
+- 单条超 36 字按标点自动切屏，**不改原文、不缩字号**
+- 中文断行禁则 + 孤字回退 + **均衡折行**（不把「工作」「太大」这种词切断）
+- 时长由字幕决定，`guide.json` 的 `materials` 声明为 `text.subtitles`
+
+参数只要一个字段：
+
+```json
+{ "srt": "1\n00:00:00,000 --> 00:00:04,440\n第一句字幕\n\n2\n..." }
+```
 
 ## 边界
 
