@@ -1,0 +1,18 @@
+{
+  "profile": "motion-zh/rules/1",
+  "updated": "2026-11-02",
+  "rules": {
+    "cps": 6.5,
+    "min_cps": 3.0,
+    "max_line_zh": 18,
+    "min_line_zh": 4,
+    "noLineStart": "，。、；：？！）】》」』’”%‰℃",
+    "noLineEnd": "（【《「『‘“"
+  },
+  "notes": {
+    "cps": "中文每秒可读字数。信息卡建议 5~7；超过 8 观众读不完，低于 3 又显得空。",
+    "max_line_zh": "1080 宽竖屏、44px 字号的单行上限。字号越大上限越小，按实际字号换算。",
+    "noLineStart": "行首禁则：标点不能出现在行首。模板的 wrapZh() 已实现，这里是 Python 对照。",
+    "capacityEstimate": "英文 maxLength 折算中文可读字数的经验系数 0.62（中文字宽约为西文 1.6 倍）。"
+  }
+}
