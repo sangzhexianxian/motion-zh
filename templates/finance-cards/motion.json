@@ -1,0 +1,48 @@
+{
+  "$schema": "https://motiongit.com/schema/motion/0.1.json",
+  "format": "motiongit-template",
+  "specVersion": "0.1.0-draft.1",
+  "template": {
+    "id": "finance-cards-zh",
+    "version": "0.1.0",
+    "name": "财经解读 · 竖屏信息卡",
+    "status": "candidate",
+    "summary": "中文财经/时事解读的 24 秒竖屏信息卡：封面 → 数据 → 方向 → 收尾。所有文字槽位带中文字符容量约束。"
+  },
+  "runtime": {
+    "profile": "html-canvas/1",
+    "entry": "src/index.html",
+    "dependencyLock": "motion.lock.json"
+  },
+  "parameters": {
+    "schema": "params.schema.json",
+    "defaultPreset": "presets/demo.json"
+  },
+  "assets": {
+    "manifest": "asset-manifest.json"
+  },
+  "output": {
+    "width": 1080,
+    "height": 1920,
+    "fps": {
+      "num": 30,
+      "den": 1
+    },
+    "durationPolicy": "fixed",
+    "durationSeconds": 24
+  },
+  "license": {
+    "file": "licenses/TEMPLATE-LICENSE.txt"
+  },
+  "permissions": {
+    "network": false
+  },
+  "ai": {
+    "entry": "SKILL.md",
+    "guide": "guide.json",
+    "authoring": {
+      "tool": "ima.copilot (果橙) + 手工改写",
+      "note": "版式与动效由人工设计，文案与参数契约由助手协助整理；打包使用 motiongit-skill 1.0.0-rc.54"
+    }
+  }
+}
