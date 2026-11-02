@@ -1,0 +1,49 @@
+{
+  "$schema": "https://motiongit.com/schema/motion/0.1.json",
+  "format": "motiongit-template",
+  "specVersion": "0.1.0-draft.1",
+  "template": {
+    "id": "subtitle-cards-zh",
+    "version": "0.1.0",
+    "name": "字幕卡片 · 逐句上屏",
+    "status": "candidate",
+    "summary": "把一份 SRT 字幕直接变成竖屏片：逐句上屏、逐字高亮、中文禁则断行。不需要重新拆文案，字幕本身就是画面。",
+    "contentType": "full-template"
+  },
+  "runtime": {
+    "profile": "html-canvas/1",
+    "entry": "src/index.html",
+    "dependencyLock": "motion.lock.json"
+  },
+  "parameters": {
+    "schema": "params.schema.json",
+    "defaultPreset": "presets/demo.json"
+  },
+  "assets": {
+    "manifest": "asset-manifest.json"
+  },
+  "output": {
+    "width": 1080,
+    "height": 1920,
+    "fps": {
+      "num": 30,
+      "den": 1
+    },
+    "durationPolicy": "fixed",
+    "durationSeconds": 33.95
+  },
+  "license": {
+    "file": "licenses/TEMPLATE-LICENSE.txt"
+  },
+  "permissions": {
+    "network": false
+  },
+  "ai": {
+    "entry": "SKILL.md",
+    "guide": "guide.json",
+    "authoring": {
+      "tool": "Claude（AI 助手）+ ima.copilot 果橙 + 手工改写",
+      "note": "版式、字幕排版内核与参数契约由 AI 助手协作完成，人工验收每一帧；打包使用 motiongit-skill 1.0.0-rc.54"
+    }
+  }
+}
