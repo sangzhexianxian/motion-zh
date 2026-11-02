@@ -1,0 +1,17 @@
+{
+  "profile": "motiongit.asset-manifest/1",
+  "inputs": [],
+  "embedded": [],
+  "fonts": [
+    {
+      "family": "Noto Sans CJK SC",
+      "embedded": false,
+      "license": "SIL Open Font License 1.1",
+      "note": "运行时使用系统已安装字体，包内不携带字体文件。"
+    }
+  ],
+  "generated": {
+    "note": "模板内所有图形（网格、光晕、进度条、序号圆点）由 CSS/SVG 实时绘制，无位图素材。",
+    "files": []
+  }
+}
