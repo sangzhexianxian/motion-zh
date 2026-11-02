@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Finance Cards · 财经解读竖屏信息卡</title>
+<style>
+  html,body{margin:0;padding:0;width:1080px;height:1920px;overflow:hidden;background:#04060a;
+            font-family:"Noto Sans CJK SC","PingFang SC",sans-serif;-webkit-font-smoothing:antialiased}
+  #stage{position:relative;width:1080px;height:1920px;overflow:hidden;
+         background:radial-gradient(1200px 900px at 20% -8%,#0e1b2e 0%,#070a11 55%,#04060a 100%)}
+  #grid{position:absolute;inset:0;opacity:.32;
+        background-image:linear-gradient(to right,rgba(120,170,255,.07) 1px,transparent 1px),
+                         linear-gradient(to bottom,rgba(120,170,255,.07) 1px,transparent 1px);
+        background-size:90px 90px}
+  #glow{position:absolute;left:-200px;top:-320px;width:1500px;height:1100px;
+        background:radial-gradient(closest-side,rgba(76,194,255,.18),rgba(76,194,255,0) 72%);filter:blur(6px)}
+  /* 顶部品牌条 */
+  #topbar{position:absolute;left:72px;top:96px;right:72px;display:flex;align-items:center;gap:18px;opacity:0}
+  #mark{width:10px;height:44px;border-radius:5px;background:linear-gradient(#4cc2ff,#2a6fb0)}
+  #tbrand{font-size:30px;font-weight:700;color:#dfe9f5;letter-spacing:.06em}
+  #tissue{margin-left:auto;font-size:24px;color:#6d8099;letter-spacing:.12em}
+  /* 镜头通用 */
+  .sc{position:absolute;left:0;top:0;width:1080px;height:1920px;opacity:0}
+  .in{position:absolute;opacity:0}
+  /* S1 封面 */
+  #s1chip{left:72px;top:560px;font-size:26px;letter-spacing:.28em;color:#4cc2ff;
+          border:1px solid rgba(76,194,255,.42);border-radius:999px;padding:10px 22px}
+  #s1title{left:72px;top:660px;width:880px;font-weight:900;line-height:1.16;
+           background:linear-gradient(100deg,#ffffff,#c9dcf2 62%,#f2c24e);
+           -webkit-background-clip:text;background-clip:text;color:transparent}
+  #s1rule{left:72px;top:0;width:150px;height:6px;border-radius:3px;
+          background:linear-gradient(90deg,#f2c24e,rgba(242,194,78,0))}
+  #s1date{left:72px;top:0;font-size:26px;color:#7d8ea6;letter-spacing:.16em}
+  /* S2 数据 */
+  .statbox{left:72px;width:936px;height:352px;border-radius:28px;
+           background:linear-gradient(150deg,rgba(20,32,50,.94),rgba(10,16,26,.94));
+           border:1px solid rgba(90,130,180,.28);padding:44px 44px;box-sizing:border-box}
+  .statval{font-weight:900;letter-spacing:-.02em;line-height:1}
+  .statunit{font-size:34px;color:#9fb2c8;font-weight:600;margin-left:10px}
+  .statlab{font-size:32px;color:#93a7bd;margin-top:22px;letter-spacing:.04em}
+  .statbar{position:absolute;left:44px;bottom:34px;height:5px;border-radius:3px;
+           background:linear-gradient(90deg,#4cc2ff,rgba(76,194,255,0))}
+  /* S3 方向 */
+  .dirrow{left:72px;width:936px;display:flex;align-items:flex-start;gap:26px}
+  .dirnum{flex:0 0 66px;height:66px;border-radius:50%;border:1.5px solid rgba(242,194,78,.55);
+          color:#f2c24e;font-size:28px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .dirtxt{flex:1;font-size:44px;font-weight:700;color:#e6eef8;line-height:1.34;padding-top:6px}
+  #s3head{left:72px;top:452px;font-size:30px;letter-spacing:.2em;color:#7d8ea6}
+  /* S4 结尾 */
+  #s4brand{left:72px;top:744px;font-size:26px;color:#6d8099;letter-spacing:.24em}
+  #s4line{left:72px;top:810px;width:132px;height:4px;border-radius:2px;
+          background:linear-gradient(90deg,#f2c24e,rgba(242,194,78,0))}
+  #s4sum{left:72px;top:866px;width:936px;font-size:84px;font-weight:900;color:#f4f8fc;line-height:1.32}
+  #s4wm{position:absolute;left:0;right:0;top:1150px;text-align:center;font-size:200px;font-weight:900;
+         color:#8fb4dd;letter-spacing:.14em;line-height:1}
+  #s4meta{left:72px;top:1548px;font-size:26px;color:#5f7189;letter-spacing:.18em}
+  #s4cta{left:72px;top:1392px;font-size:32px;color:#0a1018;background:#f2c24e;
+         border-radius:999px;padding:20px 40px;font-weight:800;letter-spacing:.04em}
+  /* 进度条 */
+  #prog{position:absolute;left:72px;right:72px;bottom:96px;height:5px;border-radius:3px;background:rgba(120,150,190,.18)}
+  #progFill{height:5px;border-radius:3px;background:linear-gradient(90deg,#4cc2ff,#f2c24e);width:0}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="glow"></div>
+  <div id="grid"></div>
+
+  <div id="topbar"><div id="mark"></div><div id="tbrand"></div><div id="tissue"></div></div>
+
+  <!-- S1 封面 -->
+  <div class="sc" id="s1">
+    <div class="in" id="s1chip">财经解读</div>
+    <div class="in" id="s1title">标题</div>
+    <div class="in" id="s1rule"></div>
+    <div class="in" id="s1date">2026-11-02</div>
+  </div>
+
+  <!-- S2 数据 -->
+  <div class="sc" id="s2">
+    <div class="in statbox" id="st0"><div class="statval" id="v0"></div><div class="statlab" id="l0"></div><div class="statbar" id="b0"></div></div>
+    <div class="in statbox" id="st1"><div class="statval" id="v1"></div><div class="statlab" id="l1"></div><div class="statbar" id="b1"></div></div>
+  </div>
+
+  <!-- S3 方向 -->
+  <div class="sc" id="s3">
+    <div class="in" id="s3head">几个方向</div>
+    <div class="in dirrow" id="d0"><div class="dirnum">01</div><div class="dirtxt" id="dt0"></div></div>
+    <div class="in dirrow" id="d1"><div class="dirnum">02</div><div class="dirtxt" id="dt1"></div></div>
+    <div class="in dirrow" id="d2"><div class="dirnum">03</div><div class="dirtxt" id="dt2"></div></div>
+  </div>
+
+  <!-- S4 结尾 -->
+  <div class="sc" id="s4">
+    <div class="in" id="s4brand"></div>
+    <div class="in" id="s4line"></div>
+    <div class="in" id="s4sum"></div>
+    <div class="in" id="s4cta">关注 · 每天一条</div>
+    <div id="s4wm">解读</div>
+    <div class="in" id="s4meta"></div>
+  </div>
+
+  <div id="prog"><div id="progFill"></div></div>
+</div>
+
+<script>
+/* ---------- 参数 ---------- */
+const DEF = {
+  brand: "财经解读",
+  issue: "第 001 期",
+  date: "2026-11-02",
+  title: "标题写在这里",
+  stats: [
+    { value: "3.2", unit: "万亿", label: "本月新增规模" },
+    { value: "12.4", unit: "%", label: "同比增速" }
+  ],
+  directions: ["第一条方向", "第二条方向", "第三条方向"],
+  summary: "一句话把它讲明白",
+  cta: "关注 · 每天一条",
+  accent: "#4cc2ff",
+  accent2: "#f2c24e"
+};
+const P = Object.assign({}, DEF, (window.MP || {}));
+
+/* ---------- 时间轴（秒）---------- */
+const DUR = 24.0;
+const T = { s1: [0, 4.2], s2: [4.2, 12.2], s3: [12.2, 19.6], s4: [19.6, 24.0] };
+
+/* ---------- 缓动 ---------- */
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const out3 = x => 1 - Math.pow(1 - x, 3);
+const in3 = x => x * x * x;
+const smooth = x => { const p = clamp(x); return p * p * (3 - 2 * p); };
+
+/* ---------- 工具 ---------- */
+const $ = id => document.getElementById(id);
+const put = (el, x, y, op, sx, sy, rot) => {
+  el.style.transform = `translate3d(${x}px,${y}px,0) scale(${sx == null ? 1 : sx},${sy == null ? (sx == null ? 1 : sx) : sy})` + (rot ? ` rotate(${rot}deg)` : "");
+  el.style.opacity = op;
+};
+const fadeUp = (el, baseTop, p, dist = 40) => put(el, 0, baseTop + (1 - p) * dist, p);
+
+/* 按宽度自适应字号 */
+function fitText(el, text, maxW, maxSize, minSize, weight) {
+  const c = document.createElement("canvas").getContext("2d");
+  let fs = maxSize;
+  for (; fs >= minSize; fs--) {
+    c.font = `${weight || 900} ${fs}px "Noto Sans CJK SC","PingFang SC",sans-serif`;
+    if (c.measureText(text).width <= maxW) break;
+  }
+  el.style.fontSize = fs + "px";
+  return fs;
+}
+/* 中文按标点断行（禁则：标点不出现在行首） */
+function wrapZh(text, maxW, fs, weight) {
+  const c = document.createElement("canvas").getContext("2d");
+  c.font = `${weight || 900} ${fs}px "Noto Sans CJK SC","PingFang SC",sans-serif`;
+  const NO_HEAD = "，。、；：？！）】》」』%";
+  const lines = [];
+  let cur = "";
+  for (const ch of text) {
+    if (c.measureText(cur + ch).width > maxW && cur) {
+      if (NO_HEAD.includes(ch) && cur.length > 1) { cur += ch; lines.push(cur); cur = ""; continue; }
+      lines.push(cur); cur = ch;
+    } else cur += ch;
+  }
+  if (cur) lines.push(cur);
+  // 孤字回退：末行太短就从上一行末尾挪字（中文排版基本要求）
+  const w = ch => { let n = 0; for (const c of ch) n += (/[\u4e00-\u9fff]/.test(c) ? 1 : 0.55); return n; };
+  if (lines.length > 1 && w(lines[lines.length - 1]) < 4) {
+    let prev = lines[lines.length - 2], last = lines[lines.length - 1];
+    while (prev.length > 1 && w(last) < 4 && w(prev) > 4) { last = prev.slice(-1) + last; prev = prev.slice(0, -1); }
+    lines[lines.length - 2] = prev; lines[lines.length - 1] = last;
+  }
+  return lines;
+}
+
+/* ---------- 渲染 ---------- */
+function build() {
+  document.documentElement.style.setProperty("--acc", P.accent);
+  $("tbrand").textContent = P.brand;
+  $("tissue").textContent = P.issue;
+  $("s1chip").textContent = P.brand;
+
+  // S1 标题（自适应 + 最多两行）
+  const tEl = $("s1title");
+  let fs = 96;
+  for (; fs >= 62; fs--) {
+    const lines = wrapZh(P.title, 880, fs, 900);
+    if (lines.length <= 2 && Math.max(...lines.map(l => l.length)) <= 12) break;
+  }
+  const lines = wrapZh(P.title, 880, fs, 900).slice(0, 2);
+  tEl.innerHTML = lines.join("<br>");
+  tEl.style.fontSize = fs + "px";
+  const tH = lines.length * fs * 1.16;
+  $("s1rule").style.top = (660 + tH + 40) + "px";
+  $("s1date").style.top = (660 + tH + 92) + "px";
+  $("s1date").textContent = P.date;
+
+  // S2 数据
+  ["0", "1"].forEach((k, i) => {
+    const s = P.stats[i] || { value: "—", unit: "", label: "" };
+    const box = $("st" + k);
+    box.style.top = (i === 0 ? 520 : 920) + "px";
+    const val = $("v" + k);
+    val.innerHTML = `<span>${s.value}</span><span class="statunit">${s.unit || ""}</span>`;
+    val.style.fontSize = "132px";
+    val.style.color = "#ffffff";
+    $("l" + k).textContent = s.label || "";
+    $("b" + k).style.width = "0px";
+  });
+
+  // S3 方向
+  ["0", "1", "2"].forEach((k, i) => {
+    const row = $("d" + k);
+    row.style.top = (620 + i * 285) + "px";
+    const txt = (P.directions[i] || "");
+    const el = $("dt" + k);
+    fitText(el, txt, 800, 48, 34, 700);
+    el.textContent = txt;
+    row.style.display = txt ? "flex" : "none";
+  });
+
+  // S4
+  const sumEl = $("s4sum");
+  fitText(sumEl, P.summary, 936, 84, 54, 900);
+  sumEl.textContent = P.summary;
+  $("s4brand").textContent = P.brand + (P.issue ? " · " + P.issue : "");
+  $("s4cta").textContent = P.cta;
+  $("s4wm").textContent = P.brand;
+  $("s4wm").style.opacity = .07;
+  $("s4meta").textContent = [P.date, P.issue].filter(Boolean).join("   ");
+}
+
+/* ---------- 时间驱动（逐帧渲染入口）---------- */
+window.SEEK = function (t) {
+  t = Math.max(0, Math.min(DUR - 1e-4, t));
+
+  // 顶部条 & 进度
+  $("topbar").style.opacity = smooth(seg(t, 0.1, 0.8));
+  $("progFill").style.width = (996 * clamp(t / DUR)) + "px";
+
+  // ---- S1 ----
+  const [a1, b1] = T.s1, p1 = seg(t, a1, b1), vis1 = t >= a1 - .001 && t < b1;
+  $("s1").style.opacity = vis1 ? 1 : 0;
+  if (vis1) {
+    const out = seg(t, b1 - .45, b1);
+    $("s1").style.opacity = 1 - in3(out);
+    const cy = 8 * (1 - out3(seg(t, a1, a1 + 1.2)));
+    put($("s1chip"), 0, cy, smooth(seg(t, a1 + .05, a1 + .55)));
+    const tp = seg(t, a1 + .25, a1 + 1.05);
+    $("s1title").style.opacity = smooth(tp);
+    $("s1title").style.transform = `translate3d(0,${(1 - out3(tp)) * 46}px,0)`;
+    $("s1title").style.filter = `blur(${(1 - smooth(tp)) * 8}px)`;
+    const rp = seg(t, a1 + .7, a1 + 1.5);
+    $("s1rule").style.width = (150 * out3(rp)) + "px";
+    $("s1rule").style.opacity = smooth(rp);
+    $("s1date").style.opacity = smooth(seg(t, a1 + .95, a1 + 1.5));
+  }
+
+  // ---- S2 ----
+  const [a2, b2] = T.s2, vis2 = t >= a2 - .001 && t < b2;
+  $("s2").style.opacity = vis2 ? 1 : 0;
+  if (vis2) {
+    const out = seg(t, b2 - .45, b2);
+    $("s2").style.opacity = 1 - in3(out);
+    ["0", "1"].forEach((k, i) => {
+      const st = a2 + i * 1.9;
+      const p = seg(t, st, st + .75);
+      const el = $("st" + k);
+      put(el, 0, (1 - out3(p)) * 70, smooth(p), 0.96 + 0.04 * out3(p));
+      $("b" + k).style.width = (620 * out3(seg(t, st + .45, st + 1.5))) + "px";
+    });
+  }
+
+  // ---- S3 ----
+  const [a3, b3] = T.s3, vis3 = t >= a3 - .001 && t < b3;
+  $("s3").style.opacity = vis3 ? 1 : 0;
+  if (vis3) {
+    const out = seg(t, b3 - .45, b3);
+    $("s3").style.opacity = 1 - in3(out);
+    const hp = seg(t, a3, a3 + .6);
+    put($("s3head"), 0, 452 + (1 - out3(hp)) * 24, smooth(hp));
+    ["0", "1", "2"].forEach((k, i) => {
+      const st = a3 + .55 + i * .55;
+      const p = seg(t, st, st + .7);
+      const row = $("d" + k);
+      put(row, (1 - out3(p)) * -80, 0, smooth(p));
+    });
+  }
+
+  // ---- S4 ----
+  const [a4, b4] = T.s4, vis4 = t >= a4 - .001;
+  $("s4").style.opacity = vis4 ? 1 : 0;
+  if (vis4) {
+    const bp = seg(t, a4 + .05, a4 + .55);
+    $("s4brand").style.opacity = smooth(bp);
+    $("s4line").style.width = (132 * out3(seg(t, a4 + .3, a4 + .9))) + "px";
+    const sp = seg(t, a4 + .1, a4 + .9);
+    $("s4sum").style.opacity = smooth(sp);
+    $("s4sum").style.transform = `translate3d(0,${(1 - out3(sp)) * 40}px,0)`;
+    const cp = seg(t, a4 + .75, a4 + 1.3);
+    $("s4cta").style.opacity = smooth(cp);
+    const pulse = 1 + 0.02 * Math.sin((t - a4) * 3.2);
+    $("s4cta").style.transform = `translate3d(0,${(1 - out3(cp)) * 26}px,0) scale(${pulse})`;
+    $("s4wm").style.transform = `translate3d(0,${(1 - out3(seg(t, a4 + .3, a4 + 1.6))) * 30}px,0)`;
+    $("s4wm").style.opacity = .07 * smooth(seg(t, a4 + .3, a4 + 1.6));
+    $("s4meta").style.opacity = smooth(seg(t, a4 + 1.0, a4 + 1.6));
+  }
+};
+
+/* ---------- 初始化 ---------- */
+window.DURATION = DUR;
+window.FPS = 30;
+build();
+window.SEEK(0);
+window.READY = true;
+</script>
+</body>
+</html>
