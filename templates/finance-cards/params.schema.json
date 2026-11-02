@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sangzhexianxian/motion-zh/templates/finance-cards/params.schema.json",
+  "title": "财经解读 · 竖屏信息卡 参数契约",
+  "description": "中文财经/时事解读的竖屏信息卡。所有文字槽位都标注了中文字符上限（含标点），超出会被校验器拒绝——请不要靠缩小字号硬塞。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title", "stats", "directions", "summary"],
+  "properties": {
+    "brand": {
+      "type": "string",
+      "default": "财经解读",
+      "maxLength": 8,
+      "x-zh": { "maxChars": 8, "role": "栏目名", "note": "显示在左上角与封面 chip" }
+    },
+    "issue": {
+      "type": "string",
+      "default": "第 001 期",
+      "maxLength": 12,
+      "x-zh": { "maxChars": 12, "role": "期号", "note": "右上角，可留空" }
+    },
+    "date": {
+      "type": "string",
+      "default": "2026-11-02",
+      "maxLength": 12,
+      "x-zh": { "maxChars": 12, "role": "日期", "note": "封面底部" }
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 24,
+      "minLength": 4,
+      "x-zh": {
+        "maxChars": 24, "maxLines": 2, "lineChars": 12, "role": "封面主标题",
+        "note": "允许 2 行，每行建议 ≤12 字；超过会拒绝而不是缩字"
+      }
+    },
+    "stats": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "description": "1–2 个关键数据。第三条请拆成下一期或改用 directions。",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["value", "label"],
+        "properties": {
+          "value": {
+            "type": "string",
+            "maxLength": 8,
+            "x-zh": { "maxChars": 8, "role": "数值", "note": "数字与符号，如 3.2 / 12.4 / 3200" }
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 4,
+            "x-zh": { "maxChars": 4, "role": "单位", "note": "如 万亿 / % / 亿元" }
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 14,
+            "x-zh": { "maxChars": 14, "role": "数据说明", "note": "解释这个数字是什么，不要写成句子" }
+          }
+        }
+      }
+    },
+    "directions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "description": "行动/关注方向。每条一句话，不要写成清单套清单。",
+      "items": {
+        "type": "string",
+        "maxLength": 16,
+        "x-zh": { "maxChars": 16, "maxLines": 1, "role": "方向条目", "note": "单行，超过会拒绝" }
+      }
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 20,
+      "x-zh": { "maxChars": 20, "maxLines": 2, "role": "收尾总结", "note": "一句话讲明白，不要重复标题" }
+    },
+    "cta": {
+      "type": "string",
+      "default": "关注 · 每天一条",
+      "maxLength": 12,
+      "x-zh": { "maxChars": 12, "role": "行动号召", "note": "轻量引导，禁止承诺收益" }
+    },
+    "accent": {
+      "type": "string",
+      "pattern": "^#[0-9a-fA-F]{6}$",
+      "default": "#4cc2ff",
+      "description": "主强调色（科技蓝）"
+    },
+    "accent2": {
+      "type": "string",
+      "pattern": "^#[0-9a-fA-F]{6}$",
+      "default": "#f2c24e",
+      "description": "次强调色（金）"
+    }
+  },
+  "x-motion": {
+    "durationSeconds": 24,
+    "shots": [
+      { "id": "S1", "range": [0, 4.2], "name": "封面" },
+      { "id": "S2", "range": [4.2, 12.2], "name": "数据卡" },
+      { "id": "S3", "range": [12.2, 19.6], "name": "方向卡" },
+      { "id": "S4", "range": [19.6, 24.0], "name": "结尾" }
+    ]
+  }
+}
