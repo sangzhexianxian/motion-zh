@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>字幕卡片 · 逐句上屏</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1080px; height:1920px; overflow:hidden; background:#0A0E14; }
+  body {
+    font-family:"Noto Sans CJK SC","PingFang SC","Source Han Sans SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    color:#fff;
+  }
+  #stage { position:relative; width:1080px; height:1920px; overflow:hidden;
+           background:radial-gradient(1200px 900px at 50% 12%, #121B27 0%, #0A0E14 62%, #070A0F 100%); }
+  #glow { position:absolute; left:-160px; top:-140px; width:1400px; height:940px;
+          background:radial-gradient(closest-side, rgba(242,194,78,.10), rgba(242,194,78,0)); }
+
+  /* 顶部 */
+  #topbar { position:absolute; left:72px; right:72px; top:96px; display:flex;
+            align-items:center; justify-content:space-between; }
+  #brand { font-size:34px; font-weight:700; letter-spacing:.06em; }
+  #brandLine { width:34px; height:4px; border-radius:2px; background:#F2C24E;
+               display:inline-block; vertical-align:middle; margin-right:16px; }
+  #issue { font-size:28px; font-weight:500; color:rgba(255,255,255,.52); letter-spacing:.04em; }
+
+  #track { position:absolute; left:72px; right:72px; top:176px; height:4px;
+           background:rgba(255,255,255,.12); border-radius:2px; overflow:hidden; }
+  #fill { height:4px; width:0; background:#F2C24E; border-radius:2px; }
+
+  /* 字幕区 */
+  #subwrap { position:absolute; left:80px; right:80px; top:470px; height:880px;
+             display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  #prev { font-size:38px; line-height:1.5; color:rgba(255,255,255,.26);
+          text-align:center; max-width:920px; height:0; overflow:hidden;
+          white-space:nowrap; text-overflow:ellipsis; }
+  #sub { text-align:center; max-width:920px; }
+  #sub .line { display:block; }
+  #sub span { display:inline-block; white-space:pre; }
+
+  /* 底部 */
+  #foot { position:absolute; left:72px; right:72px; bottom:250px;
+          display:flex; align-items:center; justify-content:space-between;
+          font-size:26px; color:rgba(255,255,255,.42); letter-spacing:.05em; }
+  #cueIdx b { color:rgba(255,255,255,.78); font-weight:700; }
+  #brandmark { position:absolute; left:0; right:0; bottom:180px; text-align:center;
+               font-size:22px; color:rgba(255,255,255,.20); letter-spacing:.32em; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="glow"></div>
+  <div id="topbar">
+    <div id="brand"><span id="brandLine"></span><span id="brandText">字幕卡片</span></div>
+    <div id="issue"></div>
+  </div>
+  <div id="track"><div id="fill"></div></div>
+
+  <div id="subwrap">
+    <div id="prev"></div>
+    <div id="sub"></div>
+  </div>
+
+  <div id="foot">
+    <div id="cueIdx"></div>
+    <div id="clock"></div>
+  </div>
+  <div id="brandmark">SUBTITLE CARDS</div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var DEF = {
+    brand: "字幕卡片",
+    issue: "",
+    title: "",
+    srt: "",
+    subtitles: [],
+    keywords: [],
+    accent: "#F2C24E",
+    accent2: "#4CC2FF",
+    tailSeconds: 0.8
+  };
+  var P = Object.assign({}, DEF, (window.MP || {}));
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------- 1. 解析 SRT ---------- */
+  function tsToSec(s) {
+    var m = s.replace(",", ".").match(/(\d+):(\d+):(\d+(?:\.\d+)?)/);
+    if (!m) return 0;
+    return (+m[1]) * 3600 + (+m[2]) * 60 + (+m[3]);
+  }
+  function parseSRT(raw) {
+    var out = [];
+    if (!raw) return out;
+    var blocks = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split(/\n{2,}/);
+    for (var i = 0; i < blocks.length; i++) {
+      var b = blocks[i].trim();
+      if (!b) continue;
+      var lines = b.split("\n");
+      var idx = 0;
+      if (/^\d+$/.test(lines[0].trim())) idx = 1;
+      var tl = (lines[idx] || "").match(/(\d{1,2}:\d{2}:\d{2}[,.]\d{1,3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}[,.]\d{1,3})/);
+      if (!tl) continue;
+      var text = lines.slice(idx + 1).join(" ").trim();
+      text = text.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+      if (!text) continue;
+      out.push({ start: tsToSec(tl[1]), end: tsToSec(tl[2]), text: text });
+    }
+    return out;
+  }
+
+  /* ---------- 2. 整理 cue：排序、补缺口、超长切屏 ---------- */
+  var NO_HEAD = "，。、；：？！）】》」』%,.;:?!)]}";
+  var NO_TAIL = "（【《「『([{";
+
+  function splitLong(text, maxChars) {
+    if (text.length <= maxChars) return [text];
+    var parts = [], cur = "";
+    var pieces = text.split(/(?<=[。！？；])/);
+    for (var i = 0; i < pieces.length; i++) {
+      var s = pieces[i];
+      if (!s) continue;
+      if ((cur + s).length <= maxChars) { cur += s; }
+      else {
+        if (cur) { parts.push(cur); cur = ""; }
+        if (s.length <= maxChars) { cur = s; }
+        else {
+          var buf = "";
+          for (var j = 0; j < s.length; j++) {
+            buf += s[j];
+            if (buf.length >= maxChars) {
+              var cut = buf.lastIndexOf("，");
+              if (cut > maxChars * 0.5) { parts.push(buf.slice(0, cut + 1)); buf = buf.slice(cut + 1); }
+              else { parts.push(buf); buf = ""; }
+            }
+          }
+          cur = buf;
+        }
+      }
+    }
+    if (cur) parts.push(cur);
+    return parts.filter(function (x) { return x.trim().length; });
+  }
+
+  function buildCues(raw) {
+    var list = raw.slice().filter(function (c) { return c.end > c.start; });
+    list.sort(function (a, b) { return a.start - b.start; });
+    var out = [];
+    for (var i = 0; i < list.length; i++) {
+      var c = list[i];
+      var parts = splitLong(c.text, 36);
+      if (parts.length === 1) { out.push({ start: c.start, end: c.end, text: c.text }); continue; }
+      var totalW = 0, ws = [];
+      for (var k = 0; k < parts.length; k++) { ws.push(parts[k].length); totalW += parts[k].length; }
+      var dur = c.end - c.start, acc = c.start;
+      for (var k2 = 0; k2 < parts.length; k2++) {
+        var d = dur * (ws[k2] / totalW);
+        out.push({ start: acc, end: acc + d, text: parts[k2] });
+        acc += d;
+      }
+    }
+    // 补缺口：上一句结束到下一句开始之间，让上一句继续显示（避免黑屏）
+    for (var q = 0; q < out.length - 1; q++) {
+      if (out[q].end < out[q + 1].start) out[q].hold = out[q + 1].start;
+    }
+    return out;
+  }
+
+  var RAW = (P.srt && P.srt.trim()) ? parseSRT(P.srt) : (P.subtitles || []);
+  var CUES = buildCues(RAW);
+  if (!CUES.length) {
+    CUES = [{ start: 0, end: 4, text: "把 SRT 字幕放进 srt 字段，这里就会逐句上屏。" }];
+  }
+
+  var TAIL = Math.max(0, +P.tailSeconds || 0);
+  var DUR = Math.round((CUES[CUES.length - 1].end + TAIL) * 100) / 100;
+  window.DURATION = DUR;
+
+  /* ---------- 3. 初始化外观 ---------- */
+  var ACC = P.accent || "#F2C24E";
+  var ACC2 = P.accent2 || "#4CC2FF";
+  $("brandText").textContent = P.brand || "";
+  $("brandLine").style.background = ACC;
+  $("fill").style.background = ACC;
+  $("issue").textContent = P.issue || "";
+  if (P.title) {
+    var t = document.createElement("div");
+    t.style.cssText = "position:absolute;left:72px;right:72px;top:236px;text-align:center;font-size:30px;font-weight:600;color:rgba(255,255,255,.66);letter-spacing:.04em;";
+    t.textContent = P.title;
+    $("stage").appendChild(t);
+  }
+  var KW = (P.keywords || []).filter(function (x) { return x && x.length; });
+
+  /* ---------- 4. 中文断行（禁则 + 孤字回退） ---------- */
+  var MEAS = document.createElement("div");
+  MEAS.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap;font-weight:700;";
+  document.body.appendChild(MEAS);
+
+  function widthOf(text, fs) {
+    MEAS.style.fontSize = fs + "px";
+    MEAS.textContent = text;
+    return MEAS.getBoundingClientRect().width;
+  }
+
+  function wrapZh(text, maxW, fs) {
+    var lines = [], cur = "";
+    for (var i = 0; i < text.length; i++) {
+      var ch = text[i];
+      var test = cur + ch;
+      if (widthOf(test, fs) > maxW && cur.length) {
+        // 禁则：标点不落在行首 → 把上一个字一起带下去
+        if (NO_HEAD.indexOf(ch) >= 0) {
+          lines.push(cur);
+          cur = ch;
+          continue;
+        }
+        // 行尾不能是开括号
+        while (cur.length > 1 && NO_TAIL.indexOf(cur[cur.length - 1]) >= 0) {
+          ch = cur[cur.length - 1] + ch;
+          cur = cur.slice(0, -1);
+        }
+        lines.push(cur);
+        cur = ch;
+      } else {
+        cur = test;
+      }
+    }
+    if (cur) lines.push(cur);
+    // 孤字回退：末行 1 个字，从上一行挪一个字下来
+    if (lines.length >= 2 && lines[lines.length - 1].length === 1) {
+      var last = lines[lines.length - 1];
+      var prev = lines[lines.length - 2];
+      if (prev.length > 2) {
+        lines[lines.length - 2] = prev.slice(0, -1);
+        lines[lines.length - 1] = prev.slice(-1) + last;
+      }
+    }
+    return lines;
+  }
+
+  // 按中文标点切「语义段」：段内不断词，段整体占一行
+  function segsOf(text) {
+    var out = [], cur = "";
+    for (var i = 0; i < text.length; i++) {
+      cur += text[i];
+      if ("。！？；，、：".indexOf(text[i]) >= 0) { out.push(cur); cur = ""; }
+    }
+    if (cur) out.push(cur);
+    return out;
+  }
+
+  // 均衡折行：单段长句按字数均分，断点更容易落在词边界；并修正行首标点
+  function balancedWrap(text, maxW, fs, maxLines) {
+    var n = text.length;
+    for (var parts = 2; parts <= maxLines; parts++) {
+      var per = Math.ceil(n / parts);
+      var lines = [], i = 0;
+      while (i < n) { lines.push(text.slice(i, i + per)); i += per; }
+      for (var k = 1; k < lines.length; k++) {
+        var guard = 0;
+        while (lines[k].length > 1 && NO_HEAD.indexOf(lines[k][0]) >= 0 &&
+               lines[k - 1].length > 1 && guard++ < 4) {
+          lines[k] = lines[k - 1].slice(-1) + lines[k];
+          lines[k - 1] = lines[k - 1].slice(0, -1);
+        }
+      }
+      var ok = true;
+      for (var q = 0; q < lines.length; q++) {
+        if (widthOf(lines[q], fs) > maxW) { ok = false; break; }
+      }
+      if (ok) return lines;
+    }
+    return null;
+  }
+
+  // 排版策略：
+  // 1) 段数 ≤ 最大行数 → 让每一段整体放进一行（宁可降字号，不断词）
+  // 2) 段数过多 → 退化为字符级折行（长句才可能断词）
+  function fitLines(text, maxW, maxLines, maxFs, minFs) {
+    var segs = segsOf(text);
+    // 单段（句内无标点）：用均衡折行，避免把词切断
+    if (segs.length === 1) {
+      var fb = maxFs;
+      while (fb >= minFs) {
+        var bl = balancedWrap(text, maxW, fb, maxLines);
+        if (bl) return { fs: fb, lines: bl };
+        fb -= 4;
+      }
+    }
+    if (segs.length >= 2 && segs.length <= maxLines) {
+      var fs = maxFs, ok = false;
+      while (fs >= minFs) {
+        ok = true;
+        for (var i = 0; i < segs.length; i++) {
+          if (widthOf(segs[i], fs) > maxW) { ok = false; break; }
+        }
+        if (ok) return { fs: fs, lines: segs };
+        fs -= 4;
+      }
+    }
+    var f2 = maxFs;
+    while (f2 >= minFs) {
+      var ls = wrapZh(text, maxW, f2);
+      if (ls.length <= maxLines) return { fs: f2, lines: ls };
+      f2 -= 8;
+    }
+    return { fs: minFs, lines: wrapZh(text, maxW, minFs) };
+  }
+
+  var MAXW = 920, MAXLINE = 4, MAXFS = 112, MINFS = 50;
+
+  /* ---------- 5. 预计算每句的排版与逐字时间 ---------- */
+  var PLAN = CUES.map(function (c) {
+    var f = fitLines(c.text, MAXW, MAXLINE, MAXFS, MINFS);
+    var chars = [];
+    for (var i = 0; i < f.lines.length; i++) chars.push(f.lines[i].split(""));
+    // 逐字权重（ASCII 更窄，权重小）
+    var flat = [];
+    var total = 0;
+    for (var r = 0; r < chars.length; r++) {
+      for (var q = 0; q < chars[r].length; q++) {
+        var ch = chars[r][q];
+        var w = /[A-Za-z0-9]/.test(ch) ? 0.55 : 1;
+        flat.push({ ch: ch, w: w, row: r });
+        total += w;
+      }
+    }
+    var cum = [], acc = 0;
+    for (var z = 0; z < flat.length; z++) { acc += flat[z].w; cum.push(acc / total); }
+    // 找出每个字属于哪个关键词（子串匹配，返回关键词索引或 -1）
+    var tag = new Array(flat.length).fill(-1);
+    if (KW.length) {
+      for (var k = 0; k < KW.length; k++) {
+        var word = KW[k], wl = word.length;
+        for (var s = 0; s + wl <= flat.length; s++) {
+          var ok = true;
+          for (var m = 0; m < wl; m++) if (flat[s + m].ch !== word[m]) { ok = false; break; }
+          if (ok) for (var m2 = 0; m2 < wl; m2++) if (tag[s + m2] < 0) tag[s + m2] = k;
+        }
+      }
+    }
+    return { fs: f.fs, rows: chars, flat: flat, cum: cum, tag: tag };
+  });
+
+  /* ---------- 6. 渲染当前句（切句时重建 DOM） ---------- */
+  var curI = -1, spans = [];
+
+  function renderCue(i) {
+    var box = $("sub");
+    var pl = PLAN[i];
+    box.innerHTML = "";
+    spans = [];
+    for (var r = 0; r < pl.rows.length; r++) {
+      var line = document.createElement("div");
+      line.className = "line";
+      line.style.fontSize = pl.fs + "px";
+      line.style.lineHeight = "1.42";
+      line.style.fontWeight = "700";
+      line.style.letterSpacing = "0.01em";
+      for (var q = 0; q < pl.rows[r].length; q++) {
+        var sp = document.createElement("span");
+        sp.textContent = pl.rows[r][q];
+        spans.push(sp);
+        line.appendChild(sp);
+      }
+      box.appendChild(line);
+    }
+    // 上一句
+    var pv = $("prev");
+    if (i > 0) {
+      var last = CUES[i - 1].text;
+      pv.textContent = last;
+      // 上一句按宽度自适应降字号，尽量完整显示（3 档）
+      pv.style.fontSize = "38px";
+      if (pv.scrollWidth > pv.clientWidth + 1) pv.style.fontSize = "33px";
+      if (pv.scrollWidth > pv.clientWidth + 1) pv.style.fontSize = "29px";
+      pv.style.height = "58px";
+      pv.style.marginBottom = "34px";
+    } else {
+      pv.textContent = "";
+      pv.style.height = "0";
+      pv.style.marginBottom = "0";
+    }
+  }
+
+  function easeOut3(x) { return 1 - Math.pow(1 - x, 3); }
+  function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+
+  /* ---------- 7. SEEK：只改样式 ---------- */
+  window.SEEK = function (t) {
+    t = Math.max(0, Math.min(DUR - 1e-4, t));
+
+    // 进度条 & 时钟
+    $("fill").style.width = (936 * (t / DUR)).toFixed(2) + "px";
+    var mm = Math.floor(t / 60), ss = Math.floor(t % 60);
+    $("clock").textContent = (mm < 10 ? "0" : "") + mm + ":" + (ss < 10 ? "0" : "") + ss;
+
+    // 找当前句（含 hold 段）
+    var i = -1;
+    for (var k = 0; k < CUES.length; k++) {
+      var c = CUES[k];
+      var endv = c.hold || c.end;
+      if (t >= c.start - 0.0001 && t < endv) { i = k; break; }
+    }
+    if (i < 0) {
+      // 落在缝隙或片尾
+      $("sub").style.opacity = "0";
+      $("prev").style.opacity = "0";
+      $("cueIdx").innerHTML = "";
+      return;
+    }
+
+    if (i !== curI) { renderCue(i); curI = i; }
+
+    var c = CUES[i], pl = PLAN[i];
+    var endv = c.hold || c.end;
+    var dur = Math.max(0.4, endv - c.start);
+    var p = clamp01((t - c.start) / dur);
+
+    // 入场：0~0.34s 上移 + 淡入 + 去模糊
+    var ein = easeOut3(clamp01((t - c.start) / 0.34));
+    // 退场：最后 0.18s（仅该 cue 真结束、后面没有 hold 时）
+    var isLastOfHold = (c.hold ? (t >= c.hold - 0.18) : (t >= c.end - 0.18));
+    var eout = c.hold ? 1 : easeOut3(clamp01((t - (c.end - 0.18)) / 0.18));
+
+    $("sub").style.opacity = (ein * (c.hold ? 1 : (1 - eout))).toFixed(3);
+    $("sub").style.transform = "translate3d(0," + ((1 - ein) * 26).toFixed(2) + "px,0)";
+    $("sub").style.filter = "blur(" + ((1 - ein) * 5).toFixed(2) + "px)";
+
+    $("prev").style.opacity = (0.9 * ein).toFixed(3);
+
+    // 逐字高亮
+    var readP = p * 0.98; // 留一点余量，避免最后一个字卡在 100%
+    for (var s = 0; s < spans.length; s++) {
+      var isRead = pl.cum[s] <= readP;
+      var sp = spans[s];
+      if (pl.tag[s] >= 0) {
+        sp.style.color = isRead ? ACC2 : "rgba(255,255,255,.55)";
+        sp.style.textShadow = isRead ? "0 0 26px " + ACC2 + "55" : "none";
+      } else {
+        sp.style.color = isRead ? ACC : "rgba(255,255,255,.94)";
+      }
+    }
+
+    // 底部序号
+    $("cueIdx").innerHTML = "第 <b>" + (i + 1) + "</b> / " + CUES.length + " 句";
+  };
+
+  $("brandmark").textContent = (P.brand ? P.brand : "SUBTITLE CARDS").toUpperCase();
+  window.SEEK(0);
+  window.READY = true;
+})();
+</script>
+</body>
+</html>
