@@ -79,3 +79,14 @@ motion-zh/
 ## 许可
 
 MIT。检查器零依赖，只用 Python 标准库。
+---
+
+## 直接拿成品
+
+- 仓库内：`dist/finance-cards-0.1.0.motion`（17KB，已通过 MotionGit 官方 `inspect`，可直接上传/交给 AI）
+- 模板页：https://motiongit.com/publish/956
+- 在线预览（4 帧拼接）：http://103.236.93.55:39516/motion-zh/preview4.jpg
+
+## 一句话用法
+
+> 读取 https://github.com/sangzhexianxian/motion-zh 的 SKILL.md，用 scripts/check_zh.py 检查我这条中文文案能不能放进画面；放不下就告诉我改哪里。
